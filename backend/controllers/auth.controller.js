@@ -1,6 +1,7 @@
 import User from "../models/user.model.js";
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
+import { sendWelcomeEmail } from "../emails/emailHandlers.js";
 
 export const signup = async(req, res) => {
     try {
@@ -45,7 +46,16 @@ export const signup = async(req, res) => {
             sameSite:"strict",
             secure: process.env.NODE_ENV === "production",
         }); 
-        res.status(201).json({ message: "User created successfully"})
+        res.status(201).json({ message: "User created successfully"});
+
+        const profileUrl = process.env.CLIENT_URL + "/profile/" + user.username;;
+
+        try {
+            await sendWelcomeEmail(user.email, user.name, profileUrl)
+
+        } catch (emailError) { 
+            console.error("Error sending welcome email", emailError)
+        }
 
     } catch (error) {
         console.log("Error signup: ", error.message);
@@ -53,10 +63,48 @@ export const signup = async(req, res) => {
     }
 }
 
-export const login = (req, res) => {
-    res.send('login');
-}
+export const login = async (req, res) => {
+    try {
+        const { username, password } = req.body;
+
+    const user = await User.findOne({ username });
+
+    if (!user) {
+        return res.status(400).json({ message: 'Invalid user'})
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+        return res.status(400).json({ message: 'Invalid password' })
+    }
+
+    const token = jwt.sign( {userId: user._id }, 'laddassdsakdsjjkssdsad', { expiresIn : "3d" } );
+
+    await res.cookie("jwt-linkedin", token, {
+        httpOnly: true,
+        maxAge: 3 * 24 * 60 * 60 * 1000,
+        sameSite: "strict",
+        secure: process.env.NODE_ENV === "production",
+    })
+
+    res.json({ message: "Logged in successfuly" })
+
+    } catch (error) {
+        console.log('error login', error);
+        res.status(500).json({ message: "Internal server error"})
+    }
+};
 
 export const logout = (req, res) => {
-    res.send('logout');
+    res.clearCookie("jwt-linkedin");
+    res.json({ message: "Logout successfully"})
+}
+
+export const getCurrentUser = async (req, res) => {
+	try {
+		res.json(req.user);
+	} catch (error) {
+		console.error("Error in getCurrentUser controller:", error);
+		res.status(500).json({ message: "Server error" });
+	}
 }
