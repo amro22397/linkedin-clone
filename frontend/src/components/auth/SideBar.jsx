@@ -20,7 +20,7 @@ export default function Sidebar({ user }) {
 					<h2 className='text-xl font-semibold mt-2'>{user?.name}</h2>
 				</Link>
 				<p className='text-info'>{user.headline}</p>
-				<p className='text-info text-xs'>{user?.connections.length} connections</p>
+				<p className='text-info text-xs'>{user?.connections?.length} connections</p>
 			</div>
 			<div className='border-t border-base-100 p-4'>
 				<nav>
@@ -28,7 +28,7 @@ export default function Sidebar({ user }) {
 						<li>
 							<Link
 								to='/'
-								className='flex items-center py-2 px-4 rounded-md hover:bg-primary hover:text-white transition-colors'
+								className='flex items-center py-2 px-4 rounded-md hover:bg-primary hover:text-white transition duration-100'
 							>
 								<Home className='mr-2' size={20} /> Home
 							</Link>

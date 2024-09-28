@@ -1,20 +1,31 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import React, { useState } from 'react'
 import { axiosInstance } from '../lib/axios';
-import { Loader, MessageCircle, Send, Share2, ThumbsUp, Trash } from 'lucide-react';
+import { Edit, Image, Loader, MessageCircle, Send, Share2, ThumbsUp, Trash, X } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import PostAction from './PostAction';
 import { formatDistanceToNow } from "date-fns";
+import DeleteMessage from './DeleteMessage';
 
-const Post = ({ post }) => {
+const Post = ({ post, user }) => {
 
 	const { postId } = useParams();
 
     const { data: authUser } = useQuery({ queryKey: ["authUser"] });
 
+	const [showPostEdit, setShowPostEdit] = useState();
+
+	const [content, setContent] = useState("");
+	const [image, setImage] = useState(null);
+	const [imagePreview, setImagePreview] = useState(null);
+
+
     const [showComments, setShowComments] = useState(false);
 	const [newComment, setNewComment] = useState("");
 	const [comments, setComments] = useState(post.comments || []);
+
+	const [deleteMessage, setDeleteMessage] = useState(false);
+
 
     const isOwner = authUser._id === post.author._id;
     const isLiked = post.likes.includes(authUser._id);
@@ -36,6 +47,70 @@ const Post = ({ post }) => {
 			toast.error(error.message);
 		},
     });
+
+	/* const [editLoading, setEditLoading] = useState(false);
+	const [editError, setEditError] = useState(false);
+
+	console.log(editedPost)
+
+	const editPost = async (e) => {
+
+		
+		setEditLoading(true)
+		setEditError(false)
+
+		const res = await fetch(`/posts/edit/${post._id}`, {
+			method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+			body: JSON.stringify(editedPost)
+		});
+
+		const data = await res.json();
+		console.log(data)
+		setEditLoading(false)
+
+		if (data.success === false) {
+			setEditError(data.message);
+			console.log(error)
+			return
+		}
+	} */
+
+		const { mutate: editPost, isPending: editLoading } = useMutation({
+		mutationFn: async (postData) => {
+			const res = await axiosInstance.put(`/posts/edit/${post._id}`, postData);
+		},
+		onSuccess: () => {
+			setShowPostEdit(false);
+			toast.success("Post edited successfully");
+			queryClient.invalidateQueries({ queryKey: ["posts"] });
+		},
+		onError: (err) => {
+			toast.error(err.response.data.message || "Failed to edit post");
+		},
+	});
+
+
+
+	const { mutate: editedPost, isPending } = useMutation({
+		mutationFn: async (postData) => {
+			const res = await axiosInstance.post("/posts/create", postData, {
+				headers: { "Content-Type": "application/json" },
+			});
+			return res.data;
+		},
+		onSuccess: () => {
+			resetForm();
+			toast.success("Post created successfully");
+			queryClient.invalidateQueries({ queryKey: ["posts"] });
+		},
+		onError: (err) => {
+			toast.error(err.response.data.message || "Failed to create post");
+		},
+	});
+
 
     const { mutate:createComment, isPending: isAddingComment } = useMutation({
         mutationFn: async (newComment) => {
@@ -64,8 +139,7 @@ const Post = ({ post }) => {
     })
 
     const handleDeletePost = () => {
-		if (!window.confirm("Are you sure you want to delete this post?")) return;
-		deletePost();
+		setDeleteMessage(true);
 	};
 
     const handleLikePost = async () => {
@@ -95,8 +169,104 @@ const Post = ({ post }) => {
     }
 
 
+	const handleImageChange = (e) => {
+		const file = e.target.files[0];
+	
+		setImage(file);
+		if (file) {
+			readFileAsDataURL(file).then(setImagePreview);
+		} else {
+			setImagePreview(null);
+		}
+	};
+
+	const readFileAsDataURL = (file) => {
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader();
+			reader.onloadend = () => resolve(reader.result);
+			reader.onerror = reject;
+			reader.readAsDataURL(file);
+		});
+	};
+
+	const handleEditPost = async () => {
+		try {
+			const postData = { content };
+			if (image) postData.image = await readFileAsDataURL(image);
+
+			editPost(postData);
+		} catch (error) {
+			console.error("Error in handleEditPost:", error);
+		}
+	};
+
   return (
     <div className="bg-secondary rounded-lg shadow mb-4">
+		{deleteMessage && (
+				<DeleteMessage text={"Are you sure you want to delete this post?"}
+				setDeleteMessage={setDeleteMessage} handleDeletePost={deletePost} />
+			)}
+
+			{showPostEdit && (
+				<div className="bg-white border border-gray-300 p-3 rounded-lg
+				absolute left-0 right-0 w-[600px] mx-auto ">
+	
+					<div className="flex justify-end mb-3 ">
+					<X onClick={() => setShowPostEdit(false)}
+					className='hover:text-red-800 cursor-pointer active:transform active:scale-95'/>
+					</div>
+	
+					<div className='flex space-x-3'>
+					<img src={user.profilePicture || "/avatar.png"} alt={user.name} className='size-12 rounded-full' />
+
+					<textarea
+						className='w-full p-3 rounded-lg bg-gray-100 hover:shadow focus:outline-none resize-none transition-colors duration-200 min-h-[100px]'
+						defaultValue={post.content || ""}
+						onChange={(e) => setContent(e.target.value)}
+					/>
+				</div>
+	
+				
+					<div className='mt-4 relative flex gap-2 flex-col items-center'>
+						
+						
+
+						{imagePreview ? (
+							<img src={imagePreview} alt='Selected' className='max-w-full max-h-[550px] mx-auto rounded-lg
+							border border-gray-300 p-1 object-cover' />
+						) : post.image && (
+							<img src={post.image} alt='Selected' className='max-w-full max-h-[550px] mx-auto rounded-lg
+							border border-gray-300 p-1 object-cover' />
+						)}
+	
+						
+					</div>
+			
+	
+				<div className='flex justify-between items-center mt-4'>
+					<div className='flex space-x-4'>
+					<label className="flex flex-row gap-1 items-center bg-gray-100 px-3 py-2 rounded-lg font-semibold
+						border border-gray-300 mb-1 cursor-pointer
+						hover:bg-gray-50 active:transform active:scale-95">
+						<Edit />
+						<span>Edit Photo</span>
+						<input type='file' accept='image/*' className='hidden' onChange={handleImageChange} />
+						</label>
+					</div>
+	
+					<button
+						className='bg-primary text-white rounded-lg px-4 py-2 hover:bg-primary-dark transition-colors duration-200'
+						onClick={handleEditPost}
+						disabled={editLoading}
+					>
+						{editLoading ? <Loader className='size-5 animate-spin' /> : "Share"}
+					</button>
+				</div>
+				</div>
+			)}
+
+
+
         <div className="p-4">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
@@ -120,9 +290,16 @@ const Post = ({ post }) => {
               </div>
 
               {isOwner && (
-						<button onClick={handleDeletePost} className='text-red-500 hover:text-red-700'>
+						<div className="flex flex-row gap-3 items-center mx-2">
+							<button onClick={() => setShowPostEdit(true)}
+							className='text-green-600 hover:text-green-800 hidden'>
+							{isDeletingPost ? <Loader size={18} className='animate-spin' /> : <Edit size={18} />}
+						</button>
+
+							<button onClick={handleDeletePost} className='text-red-500 hover:text-red-700'>
 							{isDeletingPost ? <Loader size={18} className='animate-spin' /> : <Trash size={18} />}
 						</button>
+						</div>
 					)}
             </div>
 

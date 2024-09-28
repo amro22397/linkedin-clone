@@ -3,6 +3,7 @@ import React from 'react'
 import { axiosInstance } from '../lib/axios';
 import { Link } from 'react-router-dom';
 import { Check, Clock, UserCheck, UserPlus, X } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const RecommendedUser = ({user}) => {
 
@@ -37,6 +38,17 @@ const RecommendedUser = ({user}) => {
 			toast.error(error.response?.data?.error || "An error occurred");
 		},
   })
+
+  const { mutate: rejectRequest } = useMutation({
+	mutationFn: (requestId) => axiosInstance.put(`/connections/reject/${requestId}`),
+	onSuccess: () => {
+		toast.success("Connection request rejected");
+		queryClient.invalidateQueries({ queryKey: ["connectionStatus", user._id] });
+	},
+	onError: (error) => {
+		toast.error(error.response?.data?.error || "An error occurred");
+	},
+});
 
   
 

@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.56.2",
+    "@uploadthing/react": "^7.0.2",
     "axios": "^1.7.7",
     "date-fns": "^4.1.0",
     "linkedin-clone": "file:..",
@@ -19,7 +20,8 @@
     "react-dom": "^18.3.1",
     "react-hot-toast": "^2.4.1",
     "react-query": "^3.39.3",
-    "react-router-dom": "^6.26.2"
+    "react-router-dom": "^6.26.2",
+    "uploadthing": "^7.0.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",

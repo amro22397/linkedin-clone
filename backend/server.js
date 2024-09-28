@@ -22,13 +22,15 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+app.use(
+	cors({
+		origin: "http://localhost:5173",
+		credentials: true,
+	})
+);
+
 if (process.env.NODE_ENV !== "production") {
-	app.use(
-		cors({
-			origin: "http://localhost:5173",
-			credentials: true,
-		})
-	);
+	
 }
 
 

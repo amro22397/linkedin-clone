@@ -75,6 +75,29 @@ export const deletePost = async (req, res) => {
 	}
 };
 
+export const editPost = async (req, res) => {
+
+	const postId = req.params.id;
+
+
+		const post = await Post.findById(postId);
+
+		if (!post) {
+			return res.status(404).json({ message: "Post not found" });
+		}
+
+		if (req.user._id !== post.author.toString()) {
+			return res.status(403).json({ message: "Only update your post" });
+		}
+
+	try {
+		const updatedPost = await Post.findByIdAndUpdate(postId, req.body, {new: true} )
+		res.status(200).json(updatedPost);
+	} catch (error) {
+		console.log("Error in editing post", error)
+	}
+}
+
 export const getPostById = async (req, res) => {
 	try {
 		const postId = req.params.id;

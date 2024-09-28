@@ -5,6 +5,7 @@ import PostCreation from '../components/auth/PostCreation';
 import Post from '../components/Post';
 import { Users } from 'lucide-react';
 import RecommendedUser from '../components/RecommendedUser';
+import DeleteMessage from '../components/DeleteMessage';
 
 const MainPage = () => {
     const { data: authUser } = useQuery({ queryKey: ["authUser"] });
@@ -28,7 +29,8 @@ const MainPage = () => {
     console.log(posts, recommendedUsers)
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 relative">
+		
         <div className="hidden lg:block lg:col-span-1">
         <Sidebar user={authUser} />
         </div>
@@ -37,7 +39,7 @@ const MainPage = () => {
             <PostCreation user={authUser} />
 
             {posts?.map((post) => (
-					<Post key={post._id} post={post} />
+					<Post key={post._id} user={authUser} post={post} />
 				))}
                 
             
