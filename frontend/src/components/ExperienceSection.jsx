@@ -56,13 +56,13 @@ const ExperienceSection = ({ userData, isOwnProfile, onSave }) => {
 				<div key={exp._id} className='mb-4 flex justify-between items-start'>
 					<div className='flex items-start'>
 						<Briefcase size={20} className='mr-2 mt-1' />
-						<div>
-							<h3 className='font-semibold'>{exp.title}</h3>
-							<p className='text-gray-600'>{exp.company}</p>
+						<div className="flex flex-col">
+							<h3 className='font-semibold mb-4 text-lg'>{exp.title}</h3>
+							<p className='text-gray-600 mb-1'>{exp.company}</p>
 							<p className='text-gray-500 text-sm'>
 								{formatDate(exp.startDate)} - {exp.endDate ? formatDate(exp.endDate) : "Present"}
 							</p>
-							<p className='text-gray-700'>{exp.description}</p>
+							<p className='text-gray-700 mt-3'>{exp.description}</p>
 						</div>
 					</div>
 					{isEditing && (

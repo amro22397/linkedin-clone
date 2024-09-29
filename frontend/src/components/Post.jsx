@@ -7,13 +7,17 @@ import PostAction from './PostAction';
 import { formatDistanceToNow } from "date-fns";
 import DeleteMessage from './DeleteMessage';
 
+
+import toast from 'react-hot-toast';
+import PostComment from './PostComment';
+
 const Post = ({ post, user }) => {
 
 	const { postId } = useParams();
 
     const { data: authUser } = useQuery({ queryKey: ["authUser"] });
 
-	const [showPostEdit, setShowPostEdit] = useState();
+	const [showPostEdit, setShowPostEdit] = useState(false);
 
 	const [content, setContent] = useState("");
 	const [image, setImage] = useState(null);
@@ -78,12 +82,11 @@ const Post = ({ post, user }) => {
 		}
 	} */
 
-		const { mutate: editPost, isPending: editLoading } = useMutation({
+		const { mutate: editPost, isPending: isEditingPost } = useMutation({
 		mutationFn: async (postData) => {
 			const res = await axiosInstance.put(`/posts/edit/${post._id}`, postData);
 		},
 		onSuccess: () => {
-			setShowPostEdit(false);
 			toast.success("Post edited successfully");
 			queryClient.invalidateQueries({ queryKey: ["posts"] });
 		},
@@ -190,6 +193,8 @@ const Post = ({ post, user }) => {
 	};
 
 	const handleEditPost = async () => {
+		setShowPostEdit(false);
+
 		try {
 			const postData = { content };
 			if (image) postData.image = await readFileAsDataURL(image);
@@ -209,7 +214,7 @@ const Post = ({ post, user }) => {
 
 			{showPostEdit && (
 				<div className="bg-white border border-gray-300 p-3 rounded-lg
-				absolute left-0 right-0 w-[600px] mx-auto ">
+				absolute left-0 right-0 max-w-[470px] md:max-w-[600px] mx-auto ">
 	
 					<div className="flex justify-end mb-3 ">
 					<X onClick={() => setShowPostEdit(false)}
@@ -257,9 +262,9 @@ const Post = ({ post, user }) => {
 					<button
 						className='bg-primary text-white rounded-lg px-4 py-2 hover:bg-primary-dark transition-colors duration-200'
 						onClick={handleEditPost}
-						disabled={editLoading}
+						disabled={isEditingPost}
 					>
-						{editLoading ? <Loader className='size-5 animate-spin' /> : "Share"}
+						{isEditingPost ? <Loader className='size-5 animate-spin' /> : "Share"}
 					</button>
 				</div>
 				</div>
@@ -292,9 +297,9 @@ const Post = ({ post, user }) => {
               {isOwner && (
 						<div className="flex flex-row gap-3 items-center mx-2">
 							<button onClick={() => setShowPostEdit(true)}
-							className='text-green-600 hover:text-green-800 hidden'>
-							{isDeletingPost ? <Loader size={18} className='animate-spin' /> : <Edit size={18} />}
-						</button>
+							className='text-green-600 hover:text-green-800'>
+							{isEditingPost ? <Loader size={18} className='animate-spin' /> : <Edit size={18} />}
+							</button>
 
 							<button onClick={handleDeletePost} className='text-red-500 hover:text-red-700'>
 							{isDeletingPost ? <Loader size={18} className='animate-spin' /> : <Trash size={18} />}
@@ -304,7 +309,8 @@ const Post = ({ post, user }) => {
             </div>
 
             <p className='mb-4'>{post.content}</p>
-				{post.image && <img src={post.image} alt='Post content' className='rounded-lg w-full mb-4' />}
+				{post.image && <img src={post.image} alt='Post content' className='rounded-lg max-w-full mb-4
+				max-h-[550px] mx-auto' />}
 
                 <div className='flex justify-between text-info'>
 					<PostAction
@@ -326,24 +332,7 @@ const Post = ({ post, user }) => {
 				<div className='px-4 pb-4'>
 					<div className='mb-4 max-h-60 overflow-y-auto'>
 						{comments.map((comment) => (
-							<div key={comment._id} className='mb-2 bg-base-100 p-2 rounded flex items-start'>
-								<img
-									src={comment.user.profilePicture || "/avatar.png"}
-									alt={comment.user.name}
-									className='w-8 h-8 rounded-full mr-2 flex-shrink-0'
-								/>
-								<div className='flex-grow'>
-									<div className='flex items-center mb-1'>
-										<span className='font-semibold mr-2'>{comment.user.name}</span>
-										
-                                        <span className='text-xs text-info'>
-											{formatDistanceToNow(new Date(comment.createdAt))}
-										</span>
-                                        
-									</div>
-									<p>{comment.content}</p>
-								</div>
-							</div>
+							<PostComment post={post} comment={comment} authUser={authUser} />
 						))}
 					</div>
 
@@ -352,8 +341,10 @@ const Post = ({ post, user }) => {
 							type='text'
 							value={newComment}
 							onChange={(e) => setNewComment(e.target.value)}
-							placeholder='Add a comment...'
-							className='flex-grow p-2 rounded-l-full bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary'
+							placeholder='Add a comment'
+							className='flex-grow px-4 py-[7px] rounded-l-full bg-base-100 focus:border-none
+							active:outline-none focus:outline-none text-sm
+							'
 						/>
 
 						<button

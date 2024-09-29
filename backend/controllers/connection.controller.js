@@ -33,6 +33,14 @@ export const sendConnectionRequest = async (req, res) => {
 
 		await newRequest.save();
 
+		const updatedUserPending = await User.findByIdAndUpdate(userId, {
+			$push: { pendingConnections: senderId }
+		})
+
+		const updatedSenderUserPending = await User.findByIdAndUpdate(senderId, {
+			$push: { pendingConnections: userId }
+		})
+
 		res.status(201).json({ message: "Connection request sent successfully" });
 	} catch (error) {
 		res.status(500).json({ message: "Server error" });
@@ -158,6 +166,14 @@ export const removeConnection = async (req, res) => {
 
 		await User.findByIdAndUpdate(myId, { $pull: { connections: userId } });
 		await User.findByIdAndUpdate(userId, { $pull: { connections: myId } });
+
+		await ConnectionRequest.deleteOne(
+			{
+				sender: myId,
+				recipient: userId,
+				status: "pending",
+			}
+		)
 
 		res.json({ message: "Connection removed successfully" });
 	} catch (error) {

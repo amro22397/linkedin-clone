@@ -6,7 +6,7 @@ const DeleteMessage = ({text, setDeleteMessage, handleDeletePost}) => {
   return (
     
     <div className="fixed left-0 right-0 top-[330px] z-50
-    bg-white rounded-md h-[125px] w-[500px] border border-gray-800/20
+    bg-white rounded-md p-4 max-w-[500px] border border-gray-800/20
     flex items-center justify-center mx-auto ">
         <div className="flex flex-col items-center justify-center gap-[18px]">
 

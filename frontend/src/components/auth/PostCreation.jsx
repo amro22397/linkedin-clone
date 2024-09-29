@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { axiosInstance } from "../../lib/axios";
 import toast from "react-hot-toast";
-import { Edit, Edit2, Image, Loader, Plus } from "lucide-react";
+import { Edit, Edit2, Image, Loader, Plus, X } from "lucide-react";
 import DeleteMessage from "../DeleteMessage";
 
 const PostCreation = ({ user }) => {
@@ -81,32 +81,37 @@ const PostCreation = ({ user }) => {
 			</div>
 
 			{imagePreview && (
-				<div className='mt-4 border border-gray-300 rounded-lg p-1 relative'>
-					<img src={imagePreview} alt='Selected' className='w-full h-auto rounded-lg' />
+				<div className='mt-4 border border-gray-300 rounded-lg p-1 relative
+				'>
+					<div className="flex justify-end mx-3 my-[9px]">
+					<X onClick={() => setImagePreview(null)}
+					className="text-red-800 cursor-pointer hover:text-red-700 active:transform active:scale-95"/>
+					</div>
 
-					<button className="flex flex-row gap-1 items-center bg-gray-100 px-3 py-2 rounded-lg font-semibold
+					<img src={imagePreview} alt='Selected' className='max-w-full max-h-[500px] mx-auto rounded-lg
+					mb-[28px]' />
+
+					{/* <button className="flex flex-row gap-1 items-center bg-gray-100 px-3 py-2 rounded-lg font-semibold
 					border border-gray-300 absolute left-4 top-4 z-50
 					hover:bg-gray-50 active:transform active:scale-95">
 					<Plus />
 					<span>Add more photos</span>
-					</button>
+					</button> */}
 
-					<button className="flex flex-row gap-1 items-center bg-gray-100 px-3 py-2 rounded-lg font-semibold
-					border border-gray-300 absolute left-[211px] top-4 z-50
-					hover:bg-gray-50 active:transform active:scale-95">
-					<Edit />
-					<span>Edit Photo</span>
-					</button>
+					
 				</div>
 			)}
 
 			<div className='flex justify-between items-center mt-4'>
 				<div className='flex space-x-4'>
-					<label className='flex items-center text-info hover:text-info-dark transition-colors duration-200 cursor-pointer'>
-						<Image size={20} className='mr-2' />
-						<span>Photo</span>
-						<input type='file' accept='image/*' className='hidden' onChange={handleImageChange} multiple />
+
+					
+						<label className='flex items-center text-info hover:text-info-dark transition-colors duration-200 cursor-pointer'>
+						{imagePreview ? <Edit size={20} className='mr-2' /> : <Image size={20} className='mr-2' />}
+						<span>{imagePreview ? "Edit Photo" : "Photo"}</span>
+						<input type='file' accept='image/*' className='hidden' onChange={handleImageChange} />
 					</label>
+					
 				</div>
 
 				<button

@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import React from 'react'
 import { Link } from 'react-router-dom';
 import { axiosInstance } from '../lib/axios';
+import toast from 'react-hot-toast';
 
 const FriendRequest = ({request}) => {
     const queryClient = useQueryClient();
@@ -11,6 +12,7 @@ const FriendRequest = ({request}) => {
 		onSuccess: () => {
 			toast.success("Connection request accepted");
 			queryClient.invalidateQueries({ queryKey: ["connectionRequests"] });
+			window.location.reload();
 		},
 		onError: (error) => {
 			toast.error(error.response.data.error);

@@ -45,7 +45,7 @@ const ProfilePage = () => {
 	const isOwnProfile = authUser.username === userProfile?.data?.username;
 	const userData = isOwnProfile ? authUser : userProfile?.data;
 
-    
+    console.log(userData)
 
 
     const handleSave = (updatedData) => {

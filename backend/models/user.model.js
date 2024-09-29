@@ -70,7 +70,17 @@ const userSchema = new mongoose.Schema({
        ],
        connections: [{
         type: mongoose.Schema.Types.ObjectId, ref: "User"
-       }]
+       }],
+       
+       pendingConnections: [{
+        type: mongoose.Schema.Types.ObjectId, ref: "User"
+       }],
+
+       isAdmin : {
+        type: Boolean,
+        default: false
+       }
+
          
 }, {timestamps:true});
 

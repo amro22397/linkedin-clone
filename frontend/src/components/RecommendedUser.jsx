@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import React from 'react'
 import { axiosInstance } from '../lib/axios';
 import { Link } from 'react-router-dom';
-import { Check, Clock, UserCheck, UserPlus, X } from 'lucide-react';
+import { Check, Clock, Loader, UserCheck, UserPlus, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const RecommendedUser = ({user}) => {
@@ -50,6 +50,22 @@ const RecommendedUser = ({user}) => {
 	},
 });
 
+const { mutate: removeConnection, isPending:isDeletingConnection } = useMutation({
+	mutationFn: async () => {
+		await axiosInstance.delete(`/connections/${user._id}`);
+	},
+
+	onSuccess: () => {
+		queryClient.invalidateQueries({ queryKey: ["connectionStatus", user._id] });
+		toast.success("Connection deleted successfully");
+
+	},
+
+	onError: (error) => {
+		toast.error(error.message);
+	},
+});
+
   
 
   const renderButton = () => {
@@ -66,11 +82,15 @@ const RecommendedUser = ({user}) => {
       case "pending":
         return (
           <button
-						className='px-3 py-1 rounded-full text-sm bg-yellow-500 text-white flex items-center'
+		  
+						className='px-3 py-1 rounded-full text-sm bg-yellow-500 text-white flex items-center
+						'
 						disabled
 					>
-						<Clock size={16} className='mr-1' />
-						Pending
+						
+						{isDeletingConnection ? <Loader className='animate-spin mx-auto' /> : <>
+							<Clock size={16} className='mr-1' /> Pending
+						</>}
 					</button>
         );
 
@@ -126,14 +146,14 @@ const RecommendedUser = ({user}) => {
   }
 
   return (
-    <div className="flex items-center justify-between mb-4">
-      <Link to={`/profile/${user.username}`} className='flex items-center flex-grow'>
+    <div className="flex flex-row items-center justify-between mb-4 max-xl:flex-col max-xl:gap-4">
+      <Link to={`/profile/${user.username}`} className='flex items-center flex-grow '>
 				<img
 					src={user.profilePicture || "/avatar.png"}
 					alt={user.name}
 					className='w-12 h-12 rounded-full mr-3'
 				/>
-				<div>
+				<div className='w-[50%] flex flex-col gap-1'>
 					<h3 className='font-semibold text-sm'>{user.name}</h3>
 					<p className='text-xs text-info'>{user.headline}</p>
 				</div>

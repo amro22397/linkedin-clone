@@ -3,11 +3,14 @@ import { useMemo, useState } from "react";
 import { axiosInstance } from "../lib/axios";
 import { toast } from "react-hot-toast";
 import { Camera, Clock, MapPin, UserCheck, UserPlus, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 
 const ProfileHeader = ({userData, isOwnProfile, onSave}) => {
   const [isEditing, setIsEditing] = useState(false);
 	const [editedData, setEditedData] = useState({});
+
+	const navigate = useNavigate()
 
   console.log(editedData)
 	const queryClient = useQueryClient();
@@ -148,7 +151,9 @@ const ProfileHeader = ({userData, isOwnProfile, onSave}) => {
 
   const handleSave = () => {
     onSave(editedData)
+	navigate(`/profile/${editedData.username}`)
     setIsEditing(false)
+	
   }
 
   return (
@@ -210,7 +215,18 @@ const ProfileHeader = ({userData, isOwnProfile, onSave}) => {
 						<h1 className='text-2xl font-bold mb-2'>{userData.name}</h1>
 					)}
 
-{isEditing ? (
+					{isEditing ? (
+						<input
+							type='text'
+							value={editedData.username ?? userData.username}
+							onChange={(e) => setEditedData({ ...editedData, username: e.target.value })}
+							className='text-gray-600 text-center w-full'
+						/>
+					) : (
+						<p className='text-gray-600'>@ {userData.username}</p>
+					)}
+					
+					{isEditing ? (
 						<input
 							type='text'
 							value={editedData.headline ?? userData.headline}
@@ -235,6 +251,23 @@ const ProfileHeader = ({userData, isOwnProfile, onSave}) => {
 							<span className='text-gray-600'>{userData.location}</span>
 						)}
           </div>
+
+		  {isEditing && userData.isAdmin && (
+							<label className="flex flex-row gap-2 justify-center my-[7px]">
+								<input
+								type='checkbox'
+								checked={editedData.isAdmin ?? userData.isAdmin}
+								onChange={(e) => {
+									setEditedData({ ...editedData, isAdmin: e.target.checked })
+								}}
+								className='text-gray-600 text-center'
+							/>
+
+							<span className="">
+								Make Admin
+							</span>
+							</label>
+						)}
         </div>
 
         {isOwnProfile ? (

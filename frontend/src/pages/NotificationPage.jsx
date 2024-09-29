@@ -1,43 +1,39 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import React from 'react'
-import { axiosInstance } from '../lib/axios';
-import toast from 'react-hot-toast';
-import { ExternalLink, Eye, MessageSquare, ThumbsUp, Trash2, UserPlus } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import Sidebar from '../components/auth/SideBar';
-import { formatDistanceToNow } from 'date-fns';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { axiosInstance } from "../lib/axios";
+import { toast } from "react-hot-toast";
+import { ExternalLink, Eye, MessageSquare, ThumbsUp, Trash2, UserPlus } from "lucide-react";
+import { Link } from "react-router-dom";
+import Sidebar from "../components/auth/SideBar";
+import { formatDistanceToNow } from "date-fns";
 
-const NotificationPage = () => {
-    const { data: authUser } = useQuery({ queryKey: ["authUser"]});
+const NotificationsPage = () => {
+	const { data: authUser } = useQuery({ queryKey: ["authUser"] });
 
-    const queryClient = useQueryClient();
+	const queryClient = useQueryClient();
 
-    const { data:notifications, isLoading } = useQuery({
-        queryKey: ["notifications"],
-        queryFn: () => axiosInstance.get('/notifications'),
-    })
+	const { data: notifications, isLoading } = useQuery({
+		queryKey: ["notifications"],
+		queryFn: () => axiosInstance.get("/notifications"),
+	});
 
-    const { mutate: markAsReadMutation } = useMutation({
-        mutationFn: (id) => axiosInstance.put(`/notifications/${id}/read`),
-        onSuccess: () => {
+	const { mutate: markAsReadMutation } = useMutation({
+		mutationFn: (id) => axiosInstance.put(`/notifications/${id}/read`),
+		onSuccess: () => {
 			queryClient.invalidateQueries(["notifications"]);
 		},
+	});
 
-    })
-
-    const { mutate: deleteNotificationMutation } = useMutation({
-        mutationFn: (id) => axiosInstance.delete(`notifications/${id}`),
-        onSuccess: () => {
+	const { mutate: deleteNotificationMutation } = useMutation({
+		mutationFn: (id) => axiosInstance.delete(`/notifications/${id}`),
+		onSuccess: () => {
 			queryClient.invalidateQueries(["notifications"]);
 			toast.success("Notification deleted");
 		},
+	});
 
-    });
-
-
-    const renderNotificationIcon = (type) => {
-        switch(type) {
-            case "like":
+	const renderNotificationIcon = (type) => {
+		switch (type) {
+			case "like":
 				return <ThumbsUp className='text-blue-500' />;
 
 			case "comment":
@@ -46,24 +42,22 @@ const NotificationPage = () => {
 				return <UserPlus className='text-purple-500' />;
 			default:
 				return null;
-        }
-    }
+		}
+	};
 
-    const renderNotificationContent = (notification) => {
+	const renderNotificationContent = (notification) => {
 		switch (notification.type) {
 			case "like":
 				return (
 					<span>
-						<Link to={`/profile/${notification.relatedUser.username}`} className='font-bold'>
-							{notification.relatedUser.name}
-						</Link>{" "} liked your post
+						<strong>{notification.relatedUser?.name}</strong> liked your post
 					</span>
 				);
 			case "comment":
 				return (
 					<span>
-						<Link to={`/profile/${notification.relatedUser.username}`} className='font-bold'>
-							{notification.relatedUser.name}
+						<Link to={`/profile/${notification.relatedUser?.username}`} className='font-bold'>
+							{notification.relatedUser?.name}
 						</Link>{" "}
 						commented on your post
 					</span>
@@ -71,8 +65,8 @@ const NotificationPage = () => {
 			case "connectionAccepted":
 				return (
 					<span>
-						<Link to={`/profile/${notification.relatedUser.username}`} className='font-bold'>
-							{notification.relatedUser.name}
+						<Link to={`/profile/${notification.relatedUser?.username}`} className='font-bold'>
+							{notification.relatedUser?.name}
 						</Link>{" "}
 						accepted your connection request
 					</span>
@@ -82,9 +76,7 @@ const NotificationPage = () => {
 		}
 	};
 
-    
-
-    const renderRelatedPost = (relatedPost) => {
+	const renderRelatedPost = (relatedPost) => {
 		if (!relatedPost) return null;
 
 		return (
@@ -103,27 +95,21 @@ const NotificationPage = () => {
 		);
 	};
 
-    const handleNotificationDeletion = (id) => {
-        if (!window.confirm("Are you sure you want to delete this notification?")) return;
-        deleteNotificationMutation(id);
-    }
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="col-span-1 lg:col-span-1">
-            <Sidebar user={authUser} />
-        </div>
+	return (
+		<div className='grid grid-cols-1 lg:grid-cols-4 gap-6'>
+			<div className='col-span-1 lg:col-span-1'>
+				<Sidebar user={authUser} />
+			</div>
+			<div className='col-span-1 lg:col-span-3'>
+				<div className='bg-white rounded-lg shadow p-6'>
+					<h1 className='text-2xl font-bold mb-6'>Notifications</h1>
 
-        <div className="col-span-1 lg:col-span-3">
-            <div className="bg-white rounded-lg shadow p-6">
-                <h1 className="text-2xl font-bold mb-6">Notifications</h1>
-
-                {isLoading ? (
+					{isLoading ? (
 						<p>Loading notifications...</p>
-                    ) : (
-                        notifications && notifications.data.length > 0 ? (
-                            <ul>
-                                {notifications.data.map(notification => (
-                                    <li
+					) : notifications && notifications.data.length > 0 ? (
+						<ul>
+							{notifications.data.map((notification) => (
+								<li
 									key={notification._id}
 									className={`bg-white border rounded-lg p-4 my-4 transition-all hover:shadow-md ${
 										!notification.read ? "border-blue-500" : "border-gray-200"
@@ -131,10 +117,10 @@ const NotificationPage = () => {
 								>
 									<div className='flex items-start justify-between'>
 										<div className='flex items-center space-x-4'>
-											<Link to={`/profile/${notification.relatedUser.username}`}>
+											<Link to={`/profile/${notification.relatedUser?.username}`}>
 												<img
-													src={notification.relatedUser.profilePicture || "/avatar.png"}
-													alt={notification.relatedUser.name}
+													src={notification.relatedUser?.profilePicture || "/avatar.png"}
+													alt={notification.relatedUser?.name}
 													className='w-12 h-12 rounded-full object-cover'
 												/>
 											</Link>
@@ -167,7 +153,7 @@ const NotificationPage = () => {
 											)}
 
 											<button
-												onClick={handleNotificationDeletion(notification._id)}
+												onClick={() => deleteNotificationMutation(notification._id)}
 												className='p-1 bg-red-100 text-red-600 rounded hover:bg-red-200 transition-colors'
 												aria-label='Delete notification'
 											>
@@ -176,15 +162,14 @@ const NotificationPage = () => {
 										</div>
 									</div>
 								</li>
-                                ))}
-                            </ul>
-                        ) : (
-                            <p>No notification at the moment.</p>
-                    ))}
-            </div>
-        </div>
-    </div>
-  )
-} 
-
-export default NotificationPage
+							))}
+						</ul>
+					) : (
+						<p>No notification at the moment.</p>
+					)}
+				</div>
+			</div>
+		</div>
+	);
+};
+export default NotificationsPage;

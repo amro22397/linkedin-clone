@@ -75,18 +75,53 @@ export const deletePost = async (req, res) => {
 	}
 };
 
-export const editPost = async (req, res) => {
 
-	const postId = req.params.id;
+export const deleteComment = async (req, res) => {
+	try {
+		
+		const postId = req.params.postId;
+		const commentId = req.params.commentId;
 
+		const userId = req.user._id;
 
 		const post = await Post.findById(postId);
+
+		console.log(post);
 
 		if (!post) {
 			return res.status(404).json({ message: "Post not found" });
 		}
 
-		if (req.user._id !== post.author.toString()) {
+		const postCommentDelete = await Post.findByIdAndUpdate(
+			postId,
+			{
+				$pull: { comments: { _id: commentId } },
+			},
+			{ new: true }
+		).populate("author", "name email username headline profilePicture");
+
+		res.status(200).json(postCommentDelete);
+
+	} catch (error) {
+		console.log('Error deleting comment', error)
+		res.status(500).json({ message: "Server error" })
+	}
+}
+
+export const editPost = async (req, res) => {
+
+	const postId = req.params.id;
+
+
+		const post = await Post.findOne({_id: postId});
+
+		console.log(req.user._id.toString(), post.author.toString())
+
+		if (!post) {
+			return res.status(404).json({ message: "Post not found" });
+		}
+
+		if (req.user._id.toString() !== post.author.toString()) {
 			return res.status(403).json({ message: "Only update your post" });
 		}
 
@@ -135,19 +170,6 @@ export const createComment = async (req, res) => {
 			});
 
 			await newNotification.save();
-
-			try {
-				const postUrl = process.env.CLIENT_URL + "/post/" + postId;
-				await sendCommentNotificationEmail(
-					post.author.email,
-					post.author.name,
-					req.user.name,
-					postUrl,
-					content
-				);
-			} catch (error) {
-				console.log("Error in sending comment notification email:", error);
-			}
 		}
 
 		res.status(200).json(post);
@@ -156,6 +178,7 @@ export const createComment = async (req, res) => {
 		res.status(500).json({ message: "Server error" });
 	}
 };
+
 
 export const likePost = async (req, res) => {
 	try {
@@ -190,3 +213,4 @@ export const likePost = async (req, res) => {
 		res.status(500).json({ message: "Server error" });
 	}
 };
+

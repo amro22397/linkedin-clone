@@ -1,6 +1,35 @@
 import User from "../models/user.model.js"
 import cloudinary from "../lib/cloudinary.js";
 
+
+export const getSearchUsers = async (req, res) => {
+    
+    try {
+        const searchTerm = req.query.searchTerm || '';
+        console.log(searchTerm)
+
+        const users = await User.find({
+            
+            username: { $regex: searchTerm, $options: 'i' }
+
+        }).sort({ createdAt: -1 })
+
+        return res.status(200).json(users);
+    } catch (error) {
+        res.status(200).json('Error in getting users', error)
+    }
+}
+
+export const getUsers = async (req, res) => {
+    try {
+        const users = await User.find({ _id: { $ne: req.user._id } }).sort({ createdAt: -1 })
+        .select("name username profilePicture headline")
+
+        res.status(200).json(users)
+    } catch (error) {
+        res.status(500).json("Error getting users", error)
+    }
+}
 export const getSuggestedConnections = async (req, res) => {
     try {
         const currentUser = await User.findById(req.user._id).select("connections")
@@ -44,6 +73,7 @@ export const updateProfile = async (req, res) => {
     try {
         const allowedFields = [
             "name",
+            "username",
             "headline",
             "about",
             "profilePicture",
@@ -51,7 +81,8 @@ export const updateProfile = async (req, res) => {
             "skills",
             "experience",
             "education",
-            "location"
+            "location",
+            "isAdmin"
         ];
 
         const updateData = {};
@@ -79,5 +110,19 @@ export const updateProfile = async (req, res) => {
     } catch (error) {
         console.error('Error updating profile:', error);
         res.status(500).json({ message: 'Server error' });
+    }
+}
+
+export const DeleteUser = async (req, res) => {
+
+    const userId = req.params.id;
+
+    try {
+        await User.deleteOne({ _id: userId});
+
+        res.json({ message: "User removed successfully" });
+    } catch (error) {
+        console.error("Error in remove user controller:", error);
+		res.status(500).json({ message: "Server error" });
     }
 }
